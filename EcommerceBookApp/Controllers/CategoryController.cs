@@ -17,5 +17,11 @@ namespace EcommerceBookApp.Controllers
             IEnumerable<Category> objCatList = _db.Categories;
             return View(objCatList);
         }
+        //GET
+        public IActionResult Create()
+        {
+            return View();
+        }
+       
     }
 }
