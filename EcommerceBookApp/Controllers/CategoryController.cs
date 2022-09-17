@@ -29,7 +29,7 @@ namespace EcommerceBookApp.Controllers
         {
             if(obj.Name == obj.DisplayOrder.ToString())
             {
-                ModelState.AddModelError("CustomError", "The DisplayOrder cannot accept this Name. ")
+                ModelState.AddModelError("CustomError", "The DisplayOrder cannot accept this Name, as they are the same. ");
             }
             if(ModelState.IsValid)
             { 
