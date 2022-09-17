@@ -22,6 +22,23 @@ namespace EcommerceBookApp.Controllers
         {
             return View();
         }
-       
+        //POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(Category obj)
+        {
+            if(obj.Name == obj.DisplayOrder.ToString())
+            {
+                ModelState.AddModelError("CustomError", "The DisplayOrder cannot accept this Name. ")
+            }
+            if(ModelState.IsValid)
+            { 
+            _db.Categories.Add(obj); //creating a method that will be pushed to database
+            _db.SaveChanges(); // pushing to database by SaveChanges command
+            return RedirectToAction("Index");
+            }
+            return View(obj);
+        }
+
     }
 }
