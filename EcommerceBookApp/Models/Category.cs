@@ -7,7 +7,8 @@ namespace EcommerceBookApp.Models
         [Key]
         public int Id { get; set; }
         [Required]
-        public string DisplayOrder { get; set; }
+        public string Name { get; set; }
+        public int DisplayOrder { get; set; }
         public DateTime Date { get; set; } = DateTime.Now;
     }
 }
