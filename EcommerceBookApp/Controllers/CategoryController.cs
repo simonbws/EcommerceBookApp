@@ -1,4 +1,5 @@
-﻿using EcommerceBookApp.Database;
+﻿using EcommerceBookApp.DataAccess;
+using EcommerceBookApp.DataAccess.Repository.IRepository;
 using EcommerceBookApp.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,15 +7,15 @@ namespace EcommerceBookApp.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly AppDbContext _db;
-        public CategoryController(AppDbContext db)
+        private readonly IUnitOfWork _unitOW;
+        public CategoryController(IUnitOfWork unitOW)
         {
-            _db = db;
+            _unitOW = unitOW;
         }
 
         public IActionResult Index()
         {
-            IEnumerable<Category> objCatList = _db.Categories;
+            IEnumerable<Category> objCatList = _unitOW.Category.GetAll();
             return View(objCatList);
         }
         //GET
@@ -33,8 +34,8 @@ namespace EcommerceBookApp.Controllers
             }
             if (ModelState.IsValid)
             {
-                _db.Categories.Add(obj); //creating a method that will be pushed to database
-                _db.SaveChanges(); // pushing to database by SaveChanges command
+                _unitOW.Category.Add(obj); //creating a method that will be pushed to database
+                _unitOW.Save(); // pushing to database by SaveChanges command
                 TempData["success"] = "Category has been made successfully";
                 return RedirectToAction("Index");
             }
@@ -48,7 +49,8 @@ namespace EcommerceBookApp.Controllers
             {
                 return NotFound();
             }
-            var categoryFromDb = _db.Categories.Find(id);
+            //var categoryFromDb = _db.Categories.Find(id);
+            var categoryFromDb = _unitOW.Category.GetFirstOrDefault(u=>u.Id==id);
 
 
             if (categoryFromDb == null)
@@ -68,8 +70,8 @@ namespace EcommerceBookApp.Controllers
             }
             if (ModelState.IsValid)
             {
-                _db.Categories.Update(obj); //creating a method that will be pushed to database
-                _db.SaveChanges(); // pushing to database by SaveChanges command
+                _unitOW.Category.Update(obj); //creating a method that will be pushed to database
+                _unitOW.Save(); // pushing to database by SaveChanges command
                 TempData["success"] = "Category was updated successfully";
                 return RedirectToAction("Index");
             }
@@ -83,7 +85,8 @@ namespace EcommerceBookApp.Controllers
             {
                 return NotFound();
             }
-            var categoryFromDb = _db.Categories.Find(id);
+            //var categoryFromDb = _db.Categories.Find(id);
+            var categoryFromDb = _unitOW.Category.GetFirstOrDefault(u => u.Id == id);
 
 
             if (categoryFromDb == null)
@@ -97,14 +100,14 @@ namespace EcommerceBookApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeletePost(int? id)
         {
-            var obj = _db.Categories.Find(id);
+            var obj = _unitOW.Category.GetFirstOrDefault(u => u.Id == id);
             if (obj == null)
             {
                 return NotFound();
             }
 
-            _db.Categories.Remove(obj); //creating a method that will be pushed to database
-            _db.SaveChanges(); // pushing to database by SaveChanges command
+            _unitOW.Category.Remove(obj); //creating a method that will be pushed to database
+            _unitOW.Save(); // pushing to database by SaveChanges command
             TempData["success"] = "Category was deleted successfully";
             return RedirectToAction("Index");
 
