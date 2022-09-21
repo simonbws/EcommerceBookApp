@@ -61,12 +61,12 @@ namespace EcommerceBookAppWeb.Areas.Admin.Controllers
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Upsert(CoverType obj)
+        public IActionResult Upsert(ProductViewModel obj, IFormFile file)
         {
 
             if (ModelState.IsValid)
             {
-                _unitOW.CoverType.Update(obj); //creating a method that will be pushed to database
+               // _unitOW.CoverType.Update(obj); //creating a method that will be pushed to database
                 _unitOW.Save(); // pushing to database by SaveChanges command
                 TempData["success"] = "CoverType was updated successfully";
                 return RedirectToAction("Index");
