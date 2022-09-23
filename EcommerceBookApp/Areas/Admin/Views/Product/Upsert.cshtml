@@ -1,6 +1,8 @@
 ﻿@model EcommerceBookApp.Models.ViewModels.ProductViewModel
 
 <form method="post" asp-action="Upsert" enctype="multipart/form-data">
+    <input asp-for="Product.Id" hidden />
+    <input asp-for="Product.ImagePath" hidden />
     <div class="border p-3 mt-4 row">
         <div class="row pb-2">
             <h2 class="text-dark">@(Model.Product.Id != 0 ? "Update" : "Create") Product Fields</h2>
@@ -48,7 +50,7 @@
             </div>
             <div class="mb-3">
                 <label asp-for="Product.ImagePath"></label>
-                <input type="file" id="uploadBox" class="form-control" />
+                <input type="file" id="uploadBox" name="file" class="form-control" />
 
             </div>
             <div class="mb-3 col-6">
@@ -61,7 +63,7 @@
 
             <div class="mb-3 col-6">
                 <label asp-for="Product.CoverTypeId"></label>
-                <select asp-for="Product.CategoryId" asp-items="@Model.CoverTypeList" class="form-select">
+                <select asp-for="Product.CoverTypeId" asp-items="@Model.CoverTypeList" class="form-select">
                     <option disabled selected>--Select CoverType--</option>
                 </select>
                 <span asp-validation-for="Product.CoverTypeId" class="text-danger"></span>
@@ -76,7 +78,7 @@
                     <button type="submit" onclick="return ValidateInput()" class="btn btn-primary" style="width: 150px">Create</button>
 
                 }
-                <a asp-controller="CoverType" asp-action="Index" class="btn btn-outline-primary" style="width:150px">
+                <a asp-controller="Product" asp-action="Index" class="btn btn-outline-primary" style="width:150px">
                     Back To List
                 </a>
             </div>
@@ -88,13 +90,23 @@
         <partial name="_ValidationScriptsPartial" />
     }
     <script>
+
+        tinymce.init({
+            selector: 'textarea',
+            plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
+            toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
+            toolbar_mode: 'floating',
+            tinycomments_mode: 'embedded'
+            
+        });
+
         function ValidateInput() {
             if (document.getElementById("uploadBox").value == "") {
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
                     text: 'Please upload a photo!',
-                    footer: '<a href="">Why do I have this issue?</a>'
+                    tinycomments_author: 'Author name',
                 });
                 return false;
             }

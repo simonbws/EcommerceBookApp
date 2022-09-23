@@ -13,10 +13,11 @@ namespace EcommerceBookApp.DataAccess.Repository
     {
         private readonly AppDbContext _db;
         internal DbSet<T> dbSet;
-        
+
         public Repository(AppDbContext db)
         {
             _db = db;
+            _db.Products.Include(u => u.Category).Include(u => u.CoverType);
             this.dbSet = _db.Set<T>();
         }
         public void Add(T entity)
@@ -24,16 +25,30 @@ namespace EcommerceBookApp.DataAccess.Repository
             dbSet.Add(entity);
         }
 
-        public IEnumerable<T> GetAll()
+        public IEnumerable<T> GetAll(string? includeProperties = null)
         {
             IQueryable<T> q = dbSet;
+            if (includeProperties != null)
+            {
+                foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    q = q.Include(includeProp);
+                }
+            }
             return q.ToList();
         }
 
-        public T GetFirstOrDefault(Expression<Func<T, bool>> filter)
+        public T GetFirstOrDefault(Expression<Func<T, bool>> filter, string? includeProperties = null)
         {
             IQueryable<T> q = dbSet;
             q = q.Where(filter);
+            if (includeProperties != null)
+            {
+                foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    q = q.Include(includeProp);
+                }
+            }
 
             return q.FirstOrDefault();
         }

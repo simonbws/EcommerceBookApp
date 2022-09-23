@@ -78,7 +78,8 @@ namespace EcommerceBookApp.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CoverTypeId")
+                    b.Property<int?>("CoverTypeId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<string>("Description")

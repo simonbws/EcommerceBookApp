@@ -31,8 +31,8 @@ namespace EcommerceBookApp.DataAccess.Repository
                 objFromDb.Description = obj.Description;
                 objFromDb.CategoryId = obj.CategoryId;
                 objFromDb.Autor = obj.Autor;
-                objFromDb.CoverTypeId = obj.CategoryId;
-                if (objFromDb != null)
+                objFromDb.CoverTypeId = obj.CoverTypeId;
+                if (obj.ImagePath != null)
                 {
                     objFromDb.ImagePath = obj.ImagePath;
                 }
