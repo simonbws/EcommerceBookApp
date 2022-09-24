@@ -1,6 +1,8 @@
 ﻿using EcommerceBookApp.DataAccess.Repository.IRepository;
 using EcommerceBookApp.Models;
+using EcommerceBookApp.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
 
 namespace EcommerceBookAppWeb.Areas.Customer.Controllers;
@@ -26,6 +28,17 @@ public class HomeController : Controller
         return View(prodList);
     }
 
+    public IActionResult Details(int id)
+    {
+        ShopCart ShopCartObj = new()
+        {
+            Count = 1,
+            Product = _unitOW.Product.GetFirstOrDefault(u => u.Id == id, includeProperties: "Category,CoverType") //we need to retrieve all of the products
+        };
+        return View(ShopCartObj);
+    }
+
+    
     public IActionResult Privacy()
     {
         return View();
