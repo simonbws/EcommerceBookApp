@@ -23,7 +23,7 @@ function loadDataTable() {
                             <a href="/Admin/Product/Upsert?id=${data}"
                             class="btn btn-dark mx-2"> <i class="bi bi-pencil-fill"></i>Edit</a>
                             <a onClick=Delete('/Admin/Product/Delete/${data}')
-                           class="btn btn-outline-danger mx-2"> <i class="bi bi-file-x-fill"></i>Delete</a>
+                           class="btn btn-outline-danger mx-2"> <i class="bi bi-trash-fill"></i>Delete</a>
                         </div>
                     `
                 },
