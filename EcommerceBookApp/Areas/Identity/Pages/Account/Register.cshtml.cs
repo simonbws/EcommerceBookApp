@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
+using EcommerceBookApp.DataAccess.Repository.IRepository;
 using EcommerceBookApp.Models;
 using EcommerceBookApp.Utility;
 using Microsoft.AspNetCore.Authentication;
@@ -35,6 +36,7 @@ namespace EcommerceBookAppWeb.Areas.Identity.Pages.Account
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IUnitOfWork _unitOW;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
@@ -42,8 +44,10 @@ namespace EcommerceBookAppWeb.Areas.Identity.Pages.Account
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            IUnitOfWork unitOW)
         {
+            _unitOW = unitOW;
             _roleManager = roleManager;
             _userManager = userManager;
             _userStore = userStore;
@@ -115,10 +119,13 @@ namespace EcommerceBookAppWeb.Areas.Identity.Pages.Account
             public string? PostalCode { get; set; }
             public string? PhoneNumber { get; set; }
             public string? Role{ get; set; }
+            public int? CompanyId { get; set; }
+
 
             [ValidateNever]
-
             public IEnumerable<SelectListItem> RoleList { get; set; }
+            [ValidateNever]
+            public IEnumerable<SelectListItem> CompanyList { get; set; }
 
         }
 
@@ -145,18 +152,23 @@ namespace EcommerceBookAppWeb.Areas.Identity.Pages.Account
                 {
                     Text = i,
                     Value = i
-                })
+                }),
+                CompanyList = _unitOW.Company.GetAll().Select(i => new SelectListItem
+                {
+                    Text = i.Name, //we want for the text - name of the company
+                    Value = i.Id.ToString() //value is id for the company -- this is displayed
+                }),
             };
 
         }
 
-        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? returnUrl = null) //when the register button is clicked, this method is triggering
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = CreateUser();
+                var user = CreateUser(); // then the user is creating
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -166,11 +178,24 @@ namespace EcommerceBookAppWeb.Areas.Identity.Pages.Account
                 user.PostalCode = Input.PostalCode;
                 user.Name=Input.Name;
                 user.PhoneNumber = Input.PhoneNumber;
+                if(Input.Role == SD.Role_User_Comp)
+                {
+                    user.CompanyId = (int)Input.CompanyId;
+                }
                 var result = await _userManager.CreateAsync(user, Input.Password); //here we create user with the help of usermanager and its helper method
 
-                if (result.Succeeded)
+                if (result.Succeeded) //and when the result is successful
                 {
                     _logger.LogInformation("User created a new account with password.");
+                    //we want to assign the role to user
+                    if (Input.Role == null)
+                    {
+                        await _userManager.AddToRoleAsync(user, SD.Role_User_Indiv);
+                    }
+                    else
+                    { //when user role is populated
+                        await _userManager.AddToRoleAsync(user, Input.Role);
+                    }
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
