@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EcommerceBookApp.Utility\EcommerceBookApp.Utility.csproj" />
     <ProjectReference Include="..\EcommerceBookAppDataAccess\EcommerceBookApp.DataAccess.csproj" />
   </ItemGroup>
 
