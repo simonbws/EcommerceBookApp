@@ -1,6 +1,6 @@
 ﻿@model ShopCart
 <form method="post">
-    
+    <input hidden asp-for="ProductId" />
     <div class="card  container pt-4">
         <div class="card-header bg-primary text-light ml-0  row ">
             <div class="col-12 col-md-6">
@@ -11,7 +11,7 @@
                 <span class="badge bg-info pt-2 pb-2" style="height:35px;">@Model.Product.CoverType.Name</span>
                 <span class="badge bg-warning pt-2 pb-2" style="height:35px;">@Model.Product.Autor</span>
             </div>
-        </div>  
+        </div>
         <div class="card-body row container">
             <div class="container rounded p-2">
                 <div class="row">

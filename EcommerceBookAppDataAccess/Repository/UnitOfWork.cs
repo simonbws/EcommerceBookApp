@@ -17,12 +17,17 @@ namespace EcommerceBookApp.DataAccess.Repository
             CoverType = new CoverTypeRepository(_db);
             Product = new ProductRepository(_db);
             Company = new CompanyRepository(_db);
+            AppUser = new AppUserRepository(_db);
+            ShopCart = new ShopCartRepository(_db);
         }
         public ICategoryRepository Category { get; private set; }
 
         public ICoverTypeRepository CoverType { get; private set; }
         public IProductRepository Product { get; private set; }
         public ICompanyRepository Company { get; private set; }
+        public IShopCartRepository ShopCart { get; private set; }
+        public IAppUserRepository AppUser { get; private set; }
+        
 
         public void Save()
         {

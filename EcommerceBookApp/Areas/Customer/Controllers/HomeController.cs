@@ -1,9 +1,11 @@
 ﻿using EcommerceBookApp.DataAccess.Repository.IRepository;
 using EcommerceBookApp.Models;
 using EcommerceBookApp.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace EcommerceBookAppWeb.Areas.Customer.Controllers;
 
@@ -27,18 +29,47 @@ public class HomeController : Controller
 
         return View(prodList);
     }
+    // by adding that only authorized user can access to post action method
 
-    public IActionResult Details(int id)
+    public IActionResult Details(int productId)
     {
         ShopCart ShopCartObj = new()
         {
             Count = 1,
-            Product = _unitOW.Product.GetFirstOrDefault(u => u.Id == id, includeProperties: "Category,CoverType") //we need to retrieve all of the products
+            ProductId = productId, // we added this id because it is in View, and with product below this will be populated
+            Product = _unitOW.Product.GetFirstOrDefault(u => u.Id == productId, includeProperties: "Category,CoverType") //we need to retrieve all of the products
         };
         return View(ShopCartObj);
     }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public IActionResult Details(ShopCart shopCart)
+    {
+        var claimsIdentity = (ClaimsIdentity)User.Identity;
+        var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+        shopCart.AppUserId = claim.Value;// if claim is null that mean that the user is not logged in
 
+        ShopCart cartFromDatabase = _unitOW.ShopCart.GetFirstOrDefault(u => u.AppUserId == claim.Value && u.ProductId == shopCart.ProductId);
+           
+        if (cartFromDatabase == null)
+        {
+            _unitOW.ShopCart.Add(shopCart);
+        }
+        else
+        {
+            _unitOW.ShopCart.IncrCounter(cartFromDatabase, shopCart.Count);
+        }
+        
+
+        
+        //that we extract user id from claims identity
+        //here we can add this to database
+        _unitOW.Save();
+        return RedirectToAction(nameof(Index));
+    }
     
+
     public IActionResult Privacy()
     {
         return View();
