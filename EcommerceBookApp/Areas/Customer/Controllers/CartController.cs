@@ -48,7 +48,23 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
         public IActionResult Minus(int cartId)
         {
             var cart = _unitOW.ShopCart.GetFirstOrDefault(u => u.Id == cartId); // we need to retrieve from db
-            _unitOW.ShopCart.DecrCounter(cart, 1); //increasing by one
+            if (cart.Count <= 1)
+            {
+                _unitOW.ShopCart.Remove(cart);
+            }
+            else
+            {
+                _unitOW.ShopCart.DecrCounter(cart, 1); //increasing by one
+
+            }
+            _unitOW.Save(); // only if we invoke save method, it will be shown in database
+
+            return RedirectToAction(nameof(Index));
+        }
+        public IActionResult Remove(int cartId)
+        {
+            var cart = _unitOW.ShopCart.GetFirstOrDefault(u => u.Id == cartId); // we need to retrieve from db
+            _unitOW.ShopCart.Remove(cart); //increasing by one
             _unitOW.Save(); // only if we invoke save method, it will be shown in database
 
             return RedirectToAction(nameof(Index));
