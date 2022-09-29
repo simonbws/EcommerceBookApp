@@ -1,5 +1,6 @@
 ﻿using EcommerceBookApp.DataAccess.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,9 +26,14 @@ namespace EcommerceBookApp.DataAccess.Repository
             dbSet.Add(entity);
         }
 
-        public IEnumerable<T> GetAll(string? includeProperties = null)
+        public IEnumerable<T> GetAll(Expression<Func<T, bool>> filter, string? includeProperties = null)
         {
             IQueryable<T> q = dbSet;
+            if (filter != null)
+            {
+                q = q.Where(filter);
+            }
+            
             if (includeProperties != null)
             {
                 foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -38,7 +44,7 @@ namespace EcommerceBookApp.DataAccess.Repository
             return q.ToList();
         }
 
-        public T GetFirstOrDefault(Expression<Func<T, bool>> filter, string? includeProperties = null)
+        public T GetFirstOrDefault(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
         {
             IQueryable<T> q = dbSet;
             q = q.Where(filter);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,5 +25,7 @@ namespace EcommerceBookApp.Models
         [ForeignKey("AppUserId")]
         [ValidateNever]
         public AppUser AppUser { get; set; }
+        [NotMapped] // this tells EFC to not push this property to database by doing migration
+        public double Price { get; set; }
     }
 }
