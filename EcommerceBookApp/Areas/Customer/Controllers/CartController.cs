@@ -45,7 +45,15 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-           
+        public IActionResult Minus(int cartId)
+        {
+            var cart = _unitOW.ShopCart.GetFirstOrDefault(u => u.Id == cartId); // we need to retrieve from db
+            _unitOW.ShopCart.DecrCounter(cart, 1); //increasing by one
+            _unitOW.Save(); // only if we invoke save method, it will be shown in database
+
+            return RedirectToAction(nameof(Index));
+        }
+
         private double PriceByQuantity(double quantity, double price, double price50, double price100)
         {
             if (quantity <= 50)
