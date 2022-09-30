@@ -25,13 +25,15 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             //we need to populate all shop cart view model
             ShopCartViewModel = new ShopCartViewModel()
             {
-                ListCart = _unitOW.ShopCart.GetAll(u => u.AppUserId == claim.Value, includeProperties: "Product") // filter our records
+                ListCart = _unitOW.ShopCart.GetAll(u => u.AppUserId == claim.Value, includeProperties: "Product"), // filter our records
+                OrderHeader=new()
+
             };
             foreach (var cart in ShopCartViewModel.ListCart)
             {
                 cart.Price = PriceByQuantity(cart.Count, cart.Product.Price,
                     cart.Product.Price50, cart.Product.Price100);
-                ShopCartViewModel.CartTotal+= (cart.Price * cart.Count);
+                ShopCartViewModel.OrderHeader.OrderTotal+= (cart.Price * cart.Count);
             }
 
             return View(ShopCartViewModel);
@@ -39,22 +41,32 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
 
         public IActionResult Summary()
         {
-            //var claimsIdentity = (ClaimsIdentity)User.Identity; // first get the identity
-            //var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-            ////we need to populate all shop cart view model
-            //ShopCartViewModel = new ShopCartViewModel()
-            //{
-            //    ListCart = _unitOW.ShopCart.GetAll(u => u.AppUserId == claim.Value, includeProperties: "Product") // filter our records
-            //};
-            //foreach (var cart in ShopCartViewModel.ListCart)
-            //{
-            //    cart.Price = PriceByQuantity(cart.Count, cart.Product.Price,
-            //        cart.Product.Price50, cart.Product.Price100);
-            //    ShopCartViewModel.CartTotal += (cart.Price * cart.Count);
-            //}
+            var claimsIdentity = (ClaimsIdentity)User.Identity; // first get the identity
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            //we need to populate all shop cart view model
+            ShopCartViewModel = new ShopCartViewModel()
+            {
+                ListCart = _unitOW.ShopCart.GetAll(u => u.AppUserId == claim.Value, includeProperties: "Product"), // filter our records
+                OrderHeader= new()
+            };
+            ShopCartViewModel.OrderHeader.AppUser = _unitOW.AppUser.GetFirstOrDefault(
+                u => u.Id == claim.Value); // that will retrieve all the app user details for our loggin in user
+            //here we can go with properties
+            ShopCartViewModel.OrderHeader.Name = ShopCartViewModel.OrderHeader.AppUser.Name;
+            ShopCartViewModel.OrderHeader.PhoneNumber = ShopCartViewModel.OrderHeader.AppUser.PhoneNumber;
+            ShopCartViewModel.OrderHeader.StreetAddress = ShopCartViewModel.OrderHeader.AppUser.StreetAddress;
+            ShopCartViewModel.OrderHeader.State = ShopCartViewModel.OrderHeader.AppUser.State;
+            ShopCartViewModel.OrderHeader.PostalCode = ShopCartViewModel.OrderHeader.AppUser.PostalCode;
+            // here we need to add get total
+            foreach (var cart in ShopCartViewModel.ListCart)
+            {
+                cart.Price = PriceByQuantity(cart.Count, cart.Product.Price,
+                    cart.Product.Price50, cart.Product.Price100);
+                ShopCartViewModel.OrderHeader.OrderTotal += (cart.Price * cart.Count);
+            }
 
-            //return View(ShopCartViewModel);
-            return View();
+            return View(ShopCartViewModel);
+           
         }
 
         public IActionResult Plus(int cartId)

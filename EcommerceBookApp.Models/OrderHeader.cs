@@ -15,9 +15,9 @@ namespace EcommerceBookApp.Models
 		public string AppUserId { get; set; }
 		[ForeignKey("AppUserId")]
 		[ValidateNever]
-		public AppUser AppUser { get; set; }
+        public AppUser AppUser { get; set; }
 
-		public DateTime OrderDate { get; set; }
+        public DateTime OrderDate { get; set; }
 		public DateTime ShipDate { get; set; }
 		public double OrderTotal { get; set; }
 		public string? OrderStatus { get; set; }
