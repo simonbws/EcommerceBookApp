@@ -37,6 +37,26 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             return View(ShopCartViewModel);
         }
 
+        public IActionResult Summary()
+        {
+            //var claimsIdentity = (ClaimsIdentity)User.Identity; // first get the identity
+            //var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            ////we need to populate all shop cart view model
+            //ShopCartViewModel = new ShopCartViewModel()
+            //{
+            //    ListCart = _unitOW.ShopCart.GetAll(u => u.AppUserId == claim.Value, includeProperties: "Product") // filter our records
+            //};
+            //foreach (var cart in ShopCartViewModel.ListCart)
+            //{
+            //    cart.Price = PriceByQuantity(cart.Count, cart.Product.Price,
+            //        cart.Product.Price50, cart.Product.Price100);
+            //    ShopCartViewModel.CartTotal += (cart.Price * cart.Count);
+            //}
+
+            //return View(ShopCartViewModel);
+            return View();
+        }
+
         public IActionResult Plus(int cartId)
         {
             var cart = _unitOW.ShopCart.GetFirstOrDefault(u => u.Id == cartId); // we need to retrieve from db

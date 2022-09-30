@@ -14,6 +14,8 @@ namespace EcommerceBookApp.DataAccess.Repository.IRepository
         ICompanyRepository Company { get; }
         IShopCartRepository ShopCart { get; }
         IAppUserRepository AppUser { get; }
+        IOrderDetailRepository OrderDetail { get; }
+        IOrderHeaderRepository OrderHeader { get; }
 
         void Save();
     }

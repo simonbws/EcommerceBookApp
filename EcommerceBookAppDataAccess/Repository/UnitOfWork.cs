@@ -19,6 +19,8 @@ namespace EcommerceBookApp.DataAccess.Repository
             Company = new CompanyRepository(_db);
             AppUser = new AppUserRepository(_db);
             ShopCart = new ShopCartRepository(_db);
+            OrderHeader = new OrderHeaderRepository(_db);
+            OrderDetail = new OrderDetailRepository(_db);
         }
         public ICategoryRepository Category { get; private set; }
 
@@ -27,6 +29,8 @@ namespace EcommerceBookApp.DataAccess.Repository
         public ICompanyRepository Company { get; private set; }
         public IShopCartRepository ShopCart { get; private set; }
         public IAppUserRepository AppUser { get; private set; }
+        public IOrderHeaderRepository OrderHeader { get; private set; }
+        public IOrderDetailRepository OrderDetail { get; private set; }
         
 
         public void Save()
