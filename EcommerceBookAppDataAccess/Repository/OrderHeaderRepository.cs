@@ -22,7 +22,7 @@ namespace EcommerceBookApp.DataAccess.Repository
             _db.OrderHeaders.Update(obj);
         }
 
-        public void UpdateStatus(int id, string orderStatus, string paymentStatus = null)
+        public void UpdateStatus(int id, string orderStatus, string? paymentStatus = null)
         {
             var orderDb = _db.OrderHeaders.FirstOrDefault(u => u.Id == id);
             if (orderDb != null)
@@ -33,6 +33,12 @@ namespace EcommerceBookApp.DataAccess.Repository
                     orderDb.PaymentStatus = paymentStatus;
                 }
             }
+        }
+        public void UpdateStripePayId(int id, string sessionId, string paymentIntentId)
+        {
+            var orderDb = _db.OrderHeaders.FirstOrDefault(u => u.Id == id);
+            orderDb.SessionId = sessionId;
+            orderDb.PaymentIntentId = paymentIntentId;
         }
     }
 }

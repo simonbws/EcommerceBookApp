@@ -16,7 +16,7 @@ namespace EcommerceBookApp.Models
 		[ForeignKey("AppUserId")]
 		[ValidateNever]
         public AppUser AppUser { get; set; }
-
+		[Required]
         public DateTime OrderDate { get; set; }
 		public DateTime ShipDate { get; set; }
 		public double OrderTotal { get; set; }
@@ -26,8 +26,10 @@ namespace EcommerceBookApp.Models
 		public string? Carrier { get; set; }
 		public DateTime PaymentDate { get; set; }
 		public DateTime PaymentDueDate { get; set; }
+
 		public string? SessionId { get; set; }
 		public string? PaymentIntentId { get; set; }
+
 		[Required]
 		public string PhoneNumber { get; set; }
         [Required]

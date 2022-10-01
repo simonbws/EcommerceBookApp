@@ -4,6 +4,8 @@ using EcommerceBookApp.Models.ViewModels;
 using EcommerceBookApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Stripe.Checkout;
 using System.Security.Claims;
 
 namespace EcommerceBookAppWeb.Areas.Customer.Controllers
@@ -14,6 +16,7 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
     {
         private readonly IUnitOfWork _unitOW; // we need to retrieve all the shoping card
         //so thats why we are referencing to IUnitOfWork by dependency injection
+        [BindProperty]
         public ShopCartViewModel ShopCartViewModel { get; set; }
         public int OrderTotal { get; set; }
         public CartController(IUnitOfWork unitOW)
@@ -28,14 +31,14 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             ShopCartViewModel = new ShopCartViewModel()
             {
                 ListCart = _unitOW.ShopCart.GetAll(u => u.AppUserId == claim.Value, includeProperties: "Product"), // filter our records
-                OrderHeader=new()
+                OrderHeader = new()
 
             };
             foreach (var cart in ShopCartViewModel.ListCart)
             {
                 cart.Price = PriceByQuantity(cart.Count, cart.Product.Price,
                     cart.Product.Price50, cart.Product.Price100);
-                ShopCartViewModel.OrderHeader.OrderTotal+= (cart.Price * cart.Count);
+                ShopCartViewModel.OrderHeader.OrderTotal += (cart.Price * cart.Count);
             }
 
             return View(ShopCartViewModel);
@@ -49,7 +52,7 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             ShopCartViewModel = new ShopCartViewModel()
             {
                 ListCart = _unitOW.ShopCart.GetAll(u => u.AppUserId == claim.Value, includeProperties: "Product"), // filter our records
-                OrderHeader= new()
+                OrderHeader = new()
             };
             ShopCartViewModel.OrderHeader.AppUser = _unitOW.AppUser.GetFirstOrDefault(
                 u => u.Id == claim.Value); // that will retrieve all the app user details for our loggin in user
@@ -57,6 +60,7 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             ShopCartViewModel.OrderHeader.Name = ShopCartViewModel.OrderHeader.AppUser.Name;
             ShopCartViewModel.OrderHeader.PhoneNumber = ShopCartViewModel.OrderHeader.AppUser.PhoneNumber;
             ShopCartViewModel.OrderHeader.StreetAddress = ShopCartViewModel.OrderHeader.AppUser.StreetAddress;
+            ShopCartViewModel.OrderHeader.City = ShopCartViewModel.OrderHeader.AppUser.City;
             ShopCartViewModel.OrderHeader.State = ShopCartViewModel.OrderHeader.AppUser.State;
             ShopCartViewModel.OrderHeader.PostalCode = ShopCartViewModel.OrderHeader.AppUser.PostalCode;
             // here we need to add get total
@@ -68,7 +72,7 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             }
 
             return View(ShopCartViewModel);
-           
+
         }
         [HttpPost]
         [ActionName("Summary")]
@@ -84,7 +88,7 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             ShopCartViewModel.OrderHeader.OrderStatus = SD.StatusPending;
             ShopCartViewModel.OrderHeader.OrderDate = System.DateTime.Now;
             ShopCartViewModel.OrderHeader.AppUserId = claim.Value;
-            
+
             // here we need to add get total
             foreach (var cart in ShopCartViewModel.ListCart)
             {
@@ -110,14 +114,75 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
                 _unitOW.OrderDetail.Add(orderDetail);
                 _unitOW.Save(); // all order detail need to be added to db and saved
             }
-            //after all of these we will have to clear our shopping card
-            _unitOW.ShopCart.RemoveRange(ShopCartViewModel.ListCart);
-            _unitOW.Save();
 
-            return RedirectToAction("Index", "Home"); //redirect to index action of the home controller
+            //stripe settings
+            var domain = "https://localhost:7101/";
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string>()
+                {
+                    "card",
+                },
+                LineItems = new List<SessionLineItemOptions>(),
+                Mode = "payment",
+                SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={ShopCartViewModel.OrderHeader.Id}",
+                CancelUrl = domain + $"customer/cart/index",
+            };
+
+            foreach (var item in ShopCartViewModel.ListCart)
+            {
+                var sessionLineItem = new SessionLineItemOptions
+
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        UnitAmount = (long)(item.Price * 100), // 20.00 we need to convert to 2000, its double so we have to convert to long
+                        Currency = "pln",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = item.Product.Title
+                        },
+
+                    },
+                    Quantity = item.Count,
+                };
+                options.LineItems.Add(sessionLineItem);
+
+            }
+
+            var service = new SessionService();
+            Session session = service.Create(options); //here session is created
+            _unitOW.OrderHeader.UpdateStripePayId(ShopCartViewModel.OrderHeader.Id, session.Id, session.PaymentIntentId);
+            _unitOW.Save();
+            Response.Headers.Add("Location", session.Url);
+            return new StatusCodeResult(303); // we redirect here
+            //UPPER^^ this way we are updating the session id as well as the payment intend id
+
+
+            
 
         }
 
+        public IActionResult OrderConfirmation(int id)
+        {
+            OrderHeader orderHeader = _unitOW.OrderHeader.GetFirstOrDefault(u => u.Id == id);
+            //then we want to create a new session service
+            var service = new SessionService();
+            Session session = service.Get(orderHeader.SessionId); //here session is created
+            //Upper, we retrieve OH from DB based on the id, in order to check stripe status
+            //now we want to check status to make sure if the payment is actually done
+            //only then we will aprove the status
+            if (session.PaymentStatus.ToLower() == "paid")
+            {
+                _unitOW.OrderHeader.UpdateStatus(id, SD.StatusAccepted, SD.PaymentStatusAccepted);
+                _unitOW.Save();
+            }
+            List<ShopCart> shopCarts = _unitOW.ShopCart.GetAll(u => u.AppUserId ==
+            orderHeader.AppUserId).ToList();
+            _unitOW.ShopCart.RemoveRange(shopCarts);
+            _unitOW.Save();
+            return View(id);
+        }
         public IActionResult Plus(int cartId)
         {
             var cart = _unitOW.ShopCart.GetFirstOrDefault(u => u.Id == cartId); // we need to retrieve from db

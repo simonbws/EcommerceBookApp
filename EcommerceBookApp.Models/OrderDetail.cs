@@ -17,6 +17,7 @@ namespace EcommerceBookApp.Models
 		[ForeignKey("OrderId")]
 		[ValidateNever]
 		public OrderHeader OrderHeader { get; set; }
+
 		[Required]
 		public int ProductId { get; set; }
 		[ForeignKey("ProductId")]
