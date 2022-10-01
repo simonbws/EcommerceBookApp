@@ -83,9 +83,8 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
             //we need to populate all shop cart view model
             ShopCartViewModel.ListCart = _unitOW.ShopCart.GetAll(u => u.AppUserId == claim.Value, includeProperties: "Product"); // filter our records
-            //When the order is placed we need to modify some details on order header
-            ShopCartViewModel.OrderHeader.PaymentStatus = SD.PaymentStatusPending; // when the order is getting created, the status will be pending
-            ShopCartViewModel.OrderHeader.OrderStatus = SD.StatusPending;
+                                                                                                                                 //When the order is placed we need to modify some details on order header
+
             ShopCartViewModel.OrderHeader.OrderDate = System.DateTime.Now;
             ShopCartViewModel.OrderHeader.AppUserId = claim.Value;
 
@@ -95,6 +94,18 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
                 cart.Price = PriceByQuantity(cart.Count, cart.Product.Price,
                     cart.Product.Price50, cart.Product.Price100);
                 ShopCartViewModel.OrderHeader.OrderTotal += (cart.Price * cart.Count);
+            }
+            AppUser appUser = _unitOW.AppUser.GetFirstOrDefault(u => u.Id == claim.Value); // we retrieve user from db
+
+            if (appUser.CompanyId.GetValueOrDefault() == 0) // is company is = 0, everything will be pending
+            {
+                ShopCartViewModel.OrderHeader.PaymentStatus = SD.PaymentStatusPending; // when the order is getting created, the status will be pending
+                ShopCartViewModel.OrderHeader.OrderStatus = SD.StatusPending;
+            }
+            else
+            {
+                ShopCartViewModel.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPaymenet; // when the order is getting created, the status will be pending
+                ShopCartViewModel.OrderHeader.OrderStatus = SD.StatusAccepted;
             }
 
             _unitOW.OrderHeader.Add(ShopCartViewModel.OrderHeader); //we have to add this to db, that is inside the viewmodel.orderHeader 
@@ -115,68 +126,77 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
                 _unitOW.Save(); // all order detail need to be added to db and saved
             }
 
-            //stripe settings
-            var domain = "https://localhost:7101/";
-            var options = new SessionCreateOptions
+            if (appUser.CompanyId.GetValueOrDefault() == 0) // is company is = 0, everything will be pending
             {
-                PaymentMethodTypes = new List<string>()
+                //stripe settings
+                var domain = "https://localhost:7101/";
+                var options = new SessionCreateOptions
+                {
+                    PaymentMethodTypes = new List<string>()
                 {
                     "card",
                 },
-                LineItems = new List<SessionLineItemOptions>(),
-                Mode = "payment",
-                SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={ShopCartViewModel.OrderHeader.Id}",
-                CancelUrl = domain + $"customer/cart/index",
-            };
-
-            foreach (var item in ShopCartViewModel.ListCart)
-            {
-                var sessionLineItem = new SessionLineItemOptions
-
-                {
-                    PriceData = new SessionLineItemPriceDataOptions
-                    {
-                        UnitAmount = (long)(item.Price * 100), // 20.00 we need to convert to 2000, its double so we have to convert to long
-                        Currency = "pln",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = item.Product.Title
-                        },
-
-                    },
-                    Quantity = item.Count,
+                    LineItems = new List<SessionLineItemOptions>(),
+                    Mode = "payment",
+                    SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={ShopCartViewModel.OrderHeader.Id}",
+                    CancelUrl = domain + $"customer/cart/index",
                 };
-                options.LineItems.Add(sessionLineItem);
 
+                foreach (var item in ShopCartViewModel.ListCart)
+                {
+                    var sessionLineItem = new SessionLineItemOptions
+
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            UnitAmount = (long)(item.Price * 100), // 20.00 we need to convert to 2000, its double so we have to convert to long
+                            Currency = "pln",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = item.Product.Title
+                            },
+
+                        },
+                        Quantity = item.Count,
+                    };
+                    options.LineItems.Add(sessionLineItem);
+
+                }
+
+                var service = new SessionService();
+                Session session = service.Create(options); //here session is created
+                _unitOW.OrderHeader.UpdateStripePayId(ShopCartViewModel.OrderHeader.Id, session.Id, session.PaymentIntentId);
+                _unitOW.Save();
+                Response.Headers.Add("Location", session.Url);
+                return new StatusCodeResult(303); // we redirect here
+                                                  //UPPER^^ this way we are updating the session id as well as the payment intend id
+            }
+            else
+            {
+                return RedirectToAction("OrderConfirmation", "Cart", new { id = ShopCartViewModel.OrderHeader.Id });
             }
 
-            var service = new SessionService();
-            Session session = service.Create(options); //here session is created
-            _unitOW.OrderHeader.UpdateStripePayId(ShopCartViewModel.OrderHeader.Id, session.Id, session.PaymentIntentId);
-            _unitOW.Save();
-            Response.Headers.Add("Location", session.Url);
-            return new StatusCodeResult(303); // we redirect here
-            //UPPER^^ this way we are updating the session id as well as the payment intend id
-
-
-            
 
         }
 
         public IActionResult OrderConfirmation(int id)
         {
             OrderHeader orderHeader = _unitOW.OrderHeader.GetFirstOrDefault(u => u.Id == id);
-            //then we want to create a new session service
-            var service = new SessionService();
-            Session session = service.Get(orderHeader.SessionId); //here session is created
-            //Upper, we retrieve OH from DB based on the id, in order to check stripe status
-            //now we want to check status to make sure if the payment is actually done
-            //only then we will aprove the status
-            if (session.PaymentStatus.ToLower() == "paid")
+            if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPaymenet)
             {
-                _unitOW.OrderHeader.UpdateStatus(id, SD.StatusAccepted, SD.PaymentStatusAccepted);
-                _unitOW.Save();
+                //then we want to create a new session service
+                var service = new SessionService();
+                Session session = service.Get(orderHeader.SessionId); //here session is created 
+                //Upper, we retrieve OH from DB based on the id, in order to check stripe status
+                //now we want to check status to make sure if the payment is actually done
+                //only then we will aprove the status
+                if (session.PaymentStatus.ToLower() == "paid")
+                {
+                    _unitOW.OrderHeader.UpdateStatus(id, SD.StatusAccepted, SD.PaymentStatusAccepted);
+                    _unitOW.Save();
+                }
             }
+
             List<ShopCart> shopCarts = _unitOW.ShopCart.GetAll(u => u.AppUserId ==
             orderHeader.AppUserId).ToList();
             _unitOW.ShopCart.RemoveRange(shopCarts);
