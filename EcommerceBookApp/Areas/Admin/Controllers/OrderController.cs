@@ -1,5 +1,6 @@
 ﻿using EcommerceBookApp.DataAccess.Repository.IRepository;
 using EcommerceBookApp.Models;
+using EcommerceBookApp.Models.ViewModels;
 using EcommerceBookApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,8 @@ namespace EcommerceBookAppWeb.Areas.Admin.Controllers
     public class OrderController : Controller
     {
         private readonly IUnitOfWork _unitOW;
+        [BindProperty]
+        public OrderViewModel OrderViewModel { get; set; }
 
         public OrderController(IUnitOfWork unitOW)
         {
@@ -22,6 +25,15 @@ namespace EcommerceBookAppWeb.Areas.Admin.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+        public IActionResult Details(int orderId) // parameter is taken from order js,routing Details?orderId, now we add details view
+        {
+            OrderViewModel = new OrderViewModel()
+            {
+                OrderHeader = _unitOW.OrderHeader.GetFirstOrDefault(u=>u.Id == orderId, includeProperties: "AppUser"),
+                OrderDetail = _unitOW.OrderDetail.GetAll(u=>u.OrderId == orderId, includeProperties: "Product"),
+            };
+            return View(OrderViewModel); // here is get action for details, details is in order js
         }
         #region API CALLS
         [HttpGet]
