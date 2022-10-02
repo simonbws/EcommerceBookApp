@@ -37,6 +37,7 @@ namespace EcommerceBookApp.DataAccess.Repository
         public void UpdateStripePayId(int id, string sessionId, string paymentIntentId)
         {
             var orderDb = _db.OrderHeaders.FirstOrDefault(u => u.Id == id);
+            orderDb.PaymentDate = DateTime.Now;
             orderDb.SessionId = sessionId;
             orderDb.PaymentIntentId = paymentIntentId;
         }
