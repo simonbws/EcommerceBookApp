@@ -2,6 +2,7 @@
 @using EcommerceBookApp.Utility
 
 <form method="post">
+    <input asp-for="OrderHeader.Id" hidden />
     <br />
     <div class="container">
         <div class="card">
@@ -10,7 +11,7 @@
                     <i class="fas fa-shopping-cart"></i> &nbsp; Order Summary
                 </div>
                 <div class="col-12 col-md-4 offset-md-2 text-right">
-                    0
+
                     <a asp-action="Index" class="btn btn-outline-info form-control btn-sm">Back to Orders</a>
                 </div>
             </div>
@@ -123,10 +124,7 @@
                             <div class="row my-1">
                                 <div class="col-3">Order Date</div>
                                 <div class="col-9">
-
-
                                     <input value="@Model.OrderHeader.OrderDate.ToShortDateString()" readonly type="text" class="form-control" />
-
                                 </div>
                             </div>
                             <div class="row my-1">
@@ -205,10 +203,7 @@
                                     <input asp-for="OrderHeader.PaymentStatus" type="text" readonly class="form-control" />
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-warning form-control"
-                                    formmethod="post">
-                                Update Order Details
-                            </button>
+                            <input type="submit" asp-action="UpdateOrderProperties" class="btn btn-warning form-control my-1" value="Update Order Properties" />
                         </div>
                         <div class="col-12 col-lg-5 offset-lg-1">
                             <h4 class="d-flex justify-content-between align-items-center mb-3">
@@ -235,18 +230,37 @@
                                 <li class="list-group-item bg-info">
                                     <div class="row container">
                                         <div class="col-6">
-                                            <h5 class="text-end">@Model.OrderHeader.OrderTotal.ToString("c") </h5>
+                                            <h5 class="text-white">TOTAL : </h5>
                                         </div>
-                                        <div class="col-6 text-right">
-                                            <h5 class="text-white">$$$</h5>
+                                        <div class="col-6 text-end">
+                                            <h5 class="text-white">@Model.OrderHeader.OrderTotal.ToString("c")</h5>
                                         </div>
                                     </div>
                                 </li>
                             </ul>
-                            <input type="submit" class="btn btn-primary form-control my-1" value="Start Processing" />
-                            <input type="submit" class="btn btn-primary form-control my-1" value="Ship Order" />
-                            <input type="submit" class="btn btn-success form-control my-1" value="Pay Now" />
-                            <input type="submit" class="btn btn-danger form-control my-1" value="Cancel Order" />
+                            @if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+                            {
+                                @if (Model.OrderHeader.OrderStatus == SD.StatusAccepted)
+                                {
+                                    <input type="submit" class="btn btn-primary form-control my-1" value="Start Processing" />
+                                }
+                                if (Model.OrderHeader.OrderStatus == SD.StatusInProgress)
+                                {
+                                    <input type="submit" class="btn btn-primary form-control my-1" value="Ship Order" />
+                                }
+                                if (Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPaymenet &&
+                                Model.OrderHeader.OrderStatus == SD.StatusDelivered)
+                                {
+                                    <input type="submit" class="btn btn-success form-control my-1" value="Pay Now" />
+
+                                }
+                                if (Model.OrderHeader.OrderStatus != SD.StatusReturned || Model.OrderHeader.OrderStatus
+                                != SD.StatusCancelled)
+                                {
+                                    <input type="submit" class="btn btn-danger form-control my-1" value="Cancel Order" />
+
+                                }
+                            }
                         </div>
                     </div>
                 </div>

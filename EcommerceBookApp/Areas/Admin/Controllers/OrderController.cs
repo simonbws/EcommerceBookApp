@@ -35,6 +35,30 @@ namespace EcommerceBookAppWeb.Areas.Admin.Controllers
             };
             return View(OrderViewModel); // here is get action for details, details is in order js
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateOrderProperties() 
+        {
+            var orderHeaderFromDatabase = _unitOW.OrderHeader.GetFirstOrDefault(u => u.Id == OrderViewModel.OrderHeader.Id, tracked:false);
+            orderHeaderFromDatabase.Name = OrderViewModel.OrderHeader.Name;
+            orderHeaderFromDatabase.PhoneNumber = OrderViewModel.OrderHeader.PhoneNumber;
+            orderHeaderFromDatabase.StreetAddress = OrderViewModel.OrderHeader.StreetAddress;
+            orderHeaderFromDatabase.City = OrderViewModel.OrderHeader.City;
+            orderHeaderFromDatabase.State = OrderViewModel.OrderHeader.State;
+            orderHeaderFromDatabase.PostalCode = OrderViewModel.OrderHeader.PostalCode;
+            if (OrderViewModel.OrderHeader.Carrier != null)
+            {
+                orderHeaderFromDatabase.Carrier = OrderViewModel.OrderHeader.Carrier;
+            }
+            if (OrderViewModel.OrderHeader.TrackNumber != null)
+            {
+                orderHeaderFromDatabase.TrackNumber = OrderViewModel.OrderHeader.TrackNumber;
+            }
+            //_unitOW.OrderHeader.Update(orderHeaderFromDatabase);
+            _unitOW.Save();
+            TempData["Success"] = "Order Properties has been updated successfully";
+            return RedirectToAction("Details", "Order", new { orderId = orderHeaderFromDatabase.Id });
+        }
         #region API CALLS
         [HttpGet]
         public IActionResult GetAll(string status)

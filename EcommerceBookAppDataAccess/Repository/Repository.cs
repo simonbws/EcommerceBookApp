@@ -18,7 +18,8 @@ namespace EcommerceBookApp.DataAccess.Repository
         public Repository(AppDbContext db)
         {
             _db = db;
-            _db.Products.Include(u => u.Category).Include(u => u.CoverType);
+            //_db.ShopCarts.AsNoTracking()
+           // _db.Products.Include(u => u.Category).Include(u => u.CoverType);
             this.dbSet = _db.Set<T>();
         }
         public void Add(T entity)
@@ -26,7 +27,7 @@ namespace EcommerceBookApp.DataAccess.Repository
             dbSet.Add(entity);
         }
 
-        public IEnumerable<T> GetAll(Expression<Func<T, bool>> filter, string? includeProperties = null)
+        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter, string? includeProperties = null)
         {
             IQueryable<T> q = dbSet;
             if (filter != null)
@@ -44,9 +45,19 @@ namespace EcommerceBookApp.DataAccess.Repository
             return q.ToList();
         }
 
-        public T GetFirstOrDefault(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+        public T GetFirstOrDefault(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, bool tracked = true)
         {
-            IQueryable<T> q = dbSet;
+            IQueryable<T> q;
+            
+            if (tracked)
+            {
+                q = dbSet;
+            }
+            else
+            {
+                q = dbSet.AsNoTracking();
+            }
+            
             q = q.Where(filter);
             if (includeProperties != null)
             {
