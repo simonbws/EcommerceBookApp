@@ -30,16 +30,16 @@ namespace EcommerceBookAppWeb.Areas.Admin.Controllers
         {
             OrderViewModel = new OrderViewModel()
             {
-                OrderHeader = _unitOW.OrderHeader.GetFirstOrDefault(u=>u.Id == orderId, includeProperties: "AppUser"),
-                OrderDetail = _unitOW.OrderDetail.GetAll(u=>u.OrderId == orderId, includeProperties: "Product"),
+                OrderHeader = _unitOW.OrderHeader.GetFirstOrDefault(u => u.Id == orderId, includeProperties: "AppUser"),
+                OrderDetail = _unitOW.OrderDetail.GetAll(u => u.OrderId == orderId, includeProperties: "Product"),
             };
             return View(OrderViewModel); // here is get action for details, details is in order js
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UpdateOrderProperties() 
+        public IActionResult UpdateOrderProperties()
         {
-            var orderHeaderFromDatabase = _unitOW.OrderHeader.GetFirstOrDefault(u => u.Id == OrderViewModel.OrderHeader.Id, tracked:false);
+            var orderHeaderFromDatabase = _unitOW.OrderHeader.GetFirstOrDefault(u => u.Id == OrderViewModel.OrderHeader.Id, tracked: false);
             orderHeaderFromDatabase.Name = OrderViewModel.OrderHeader.Name;
             orderHeaderFromDatabase.PhoneNumber = OrderViewModel.OrderHeader.PhoneNumber;
             orderHeaderFromDatabase.StreetAddress = OrderViewModel.OrderHeader.StreetAddress;
@@ -58,12 +58,38 @@ namespace EcommerceBookAppWeb.Areas.Admin.Controllers
             _unitOW.Save();
             TempData["Success"] = "Order Properties has been updated successfully";
             return RedirectToAction("Details", "Order", new { orderId = orderHeaderFromDatabase.Id });
+
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult BeginProcess()
+        {
+            _unitOW.OrderHeader.UpdateStatus(OrderViewModel.OrderHeader.Id, SD.StatusInProgress);
+            _unitOW.Save();
+            TempData["Success"] = "Order Properties has been updated successfully";
+            return RedirectToAction("Details", "Order", new { orderId = OrderViewModel.OrderHeader.Id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeliverOrder()
+        {
+            var orderHeader = _unitOW.OrderHeader.GetFirstOrDefault(u => u.Id == OrderViewModel.OrderHeader.Id, tracked: false);
+            orderHeader.TrackNumber = OrderViewModel.OrderHeader.TrackNumber;
+            orderHeader.Carrier = OrderViewModel.OrderHeader.Carrier;
+            orderHeader.OrderStatus = SD.StatusDelivered;
+            orderHeader.ShipDate = DateTime.Now;
+            _unitOW.OrderHeader.Update(orderHeader);
+            _unitOW.Save();
+            TempData["Success"] = "Order Deliver successfully! ";
+            return RedirectToAction("Details", "Order", new { orderId = OrderViewModel.OrderHeader.Id });
+        }
+
         #region API CALLS
         [HttpGet]
         public IActionResult GetAll(string status)
         {
-            
+
             IEnumerable<OrderHeader> orderHeaders;
 
             if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee)) //admin or employee can see all the order in order to process them
@@ -74,9 +100,9 @@ namespace EcommerceBookAppWeb.Areas.Admin.Controllers
             {
                 var claimsIdentity = (ClaimsIdentity)User.Identity; // here we get the user id of the log in user using claims
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                orderHeaders = _unitOW.OrderHeader.GetAll(u=>u.AppUserId == claim.Value, includeProperties: "AppUser");
+                orderHeaders = _unitOW.OrderHeader.GetAll(u => u.AppUserId == claim.Value, includeProperties: "AppUser");
             }
-            
+
             //below is where we are retrievieng all the orders
             switch (status)
             {
@@ -92,7 +118,7 @@ namespace EcommerceBookAppWeb.Areas.Admin.Controllers
                 case "accepted":
                     orderHeaders = orderHeaders.Where(u => u.OrderStatus == SD.StatusAccepted);
                     break;
-                default:        
+                default:
                     break;
             }
 

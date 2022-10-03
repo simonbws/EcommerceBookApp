@@ -240,22 +240,22 @@
                             </ul>
                             @if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
                             {
-                                @if (Model.OrderHeader.OrderStatus == SD.StatusAccepted)
+                                if (Model.OrderHeader.OrderStatus == SD.StatusAccepted)
                                 {
-                                    <input type="submit" class="btn btn-primary form-control my-1" value="Start Processing" />
+                                    <input type="submit" asp-action="BeginProcess" class="btn btn-primary form-control my-1" value="Start Processing" />
                                 }
                                 if (Model.OrderHeader.OrderStatus == SD.StatusInProgress)
                                 {
-                                    <input type="submit" class="btn btn-primary form-control my-1" value="Ship Order" />
+                                    <input type="submit" onclick="return validateInput()" asp-action="DeliverOrder" class="btn btn-primary form-control my-1" value="Ship Order" />
                                 }
-                                if (Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPaymenet &&
-                                Model.OrderHeader.OrderStatus == SD.StatusDelivered)
+                                @if (Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPaymenet &&
+                               Model.OrderHeader.OrderStatus == SD.StatusDelivered)
                                 {
                                     <input type="submit" class="btn btn-success form-control my-1" value="Pay Now" />
 
                                 }
-                                if (Model.OrderHeader.OrderStatus != SD.StatusReturned || Model.OrderHeader.OrderStatus
-                                != SD.StatusCancelled)
+                                @if (Model.OrderHeader.OrderStatus != SD.StatusReturned || Model.OrderHeader.OrderStatus
+                               != SD.StatusCancelled)
                                 {
                                     <input type="submit" class="btn btn-danger form-control my-1" value="Cancel Order" />
 
@@ -268,4 +268,33 @@
         </div>
     </div>
 </form>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function validateInput() {
+            if (document.getElementById("trackingNumber").value == "") {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please provide track number!',
+                    tinycomments_author: 'Author name',
+                });
+                return false;
+            }
+            if (document.getElementById("carrier").value == "") {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please provide carrier!',
+                    tinycomments_author: 'Author name',
+                });
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+
+}
 
