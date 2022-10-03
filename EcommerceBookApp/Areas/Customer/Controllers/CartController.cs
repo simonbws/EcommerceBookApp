@@ -192,6 +192,8 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
                 //only then we will aprove the status
                 if (session.PaymentStatus.ToLower() == "paid")
                 {
+                    _unitOW.OrderHeader.UpdateStripePayId(ShopCartViewModel.OrderHeader.Id, session.Id, session.PaymentIntentId);
+
                     _unitOW.OrderHeader.UpdateStatus(id, SD.StatusAccepted, SD.PaymentStatusAccepted);
                     _unitOW.Save();
                 }
