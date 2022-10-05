@@ -52,20 +52,10 @@
                             </a>
                         </li>
 
-                        @if (HttpContextAccessor.HttpContext.Session.GetInt32(SD.SessionCart) != null)
-                        {
+                        
                             <li class="nav-item">
                                 <a class=nav-link asp-area="Customer" asp-controller="Cart" asp-action="Index">
-                                    <i class="bi bi-bag"></i> &nbsp;
-                                    (@HttpContextAccessor.HttpContext.Session.GetInt32(SD.SessionCart))
-                                </a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class=nav-link asp-area="Customer" asp-controller="Cart" asp-action="Index">
-                                    <i class="bi bi-bag"></i> &nbsp; (0)
+                                    @await Component.InvokeAsync("ShopCart")
                                 </a>
                             </li>
                         }
