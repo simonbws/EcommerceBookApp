@@ -219,6 +219,8 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             if (cart.Count <= 1)
             {
                 _unitOW.ShopCart.Remove(cart);
+                var count = _unitOW.ShopCart.GetAll(u => u.AppUserId == cart.AppUserId).ToList().Count -1;
+                HttpContext.Session.SetInt32(SD.SessionCart, count);
             }
             else
             {
@@ -234,7 +236,8 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
             var cart = _unitOW.ShopCart.GetFirstOrDefault(u => u.Id == cartId); // we need to retrieve from db
             _unitOW.ShopCart.Remove(cart); //increasing by one
             _unitOW.Save(); // only if we invoke save method, it will be shown in database
-
+            var count = _unitOW.ShopCart.GetAll(u=> u.AppUserId == cart.AppUserId).ToList().Count;
+            HttpContext.Session.SetInt32(SD.SessionCart, count);
             return RedirectToAction(nameof(Index));
         }
 
