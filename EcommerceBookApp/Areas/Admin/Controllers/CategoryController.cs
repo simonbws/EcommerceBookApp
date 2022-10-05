@@ -1,11 +1,14 @@
 ﻿using EcommerceBookApp.DataAccess;
 using EcommerceBookApp.DataAccess.Repository.IRepository;
 using EcommerceBookApp.Models;
+using EcommerceBookApp.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceBookAppWeb.Areas.Admin.Controllers;
 
 [Area("Admin")]
+[Authorize(Roles =SD.Role_Admin)]
 public class CategoryController : Controller
 {
     private readonly IUnitOfWork _unitOW;

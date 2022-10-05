@@ -2,6 +2,8 @@
 using EcommerceBookApp.DataAccess.Repository.IRepository;
 using EcommerceBookApp.Models;
 using EcommerceBookApp.Models.ViewModels;
+using EcommerceBookApp.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
@@ -9,6 +11,8 @@ using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 namespace EcommerceBookAppWeb.Areas.Admin.Controllers;
 
 [Area("Admin")]
+[Authorize(Roles = SD.Role_Admin)]
+
 public class ProductController : Controller
 {
     private readonly IUnitOfWork _unitOW;

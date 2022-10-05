@@ -2,6 +2,8 @@
 using EcommerceBookApp.DataAccess.Repository.IRepository;
 using EcommerceBookApp.Models;
 using EcommerceBookApp.Models.ViewModels;
+using EcommerceBookApp.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -14,6 +16,7 @@ using System.Linq;
 namespace EcommerceBookAppWeb.Areas.Admin.Controllers;
 
 [Area("Admin")]
+[Authorize(Roles = SD.Role_Admin)]
 public class CompanyController : Controller
 {
     private readonly IUnitOfWork _unitOW;

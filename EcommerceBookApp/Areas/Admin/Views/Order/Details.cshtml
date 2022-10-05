@@ -8,13 +8,13 @@
         <div class="card">
             <div class="card-header bg-dark text-light ml-0">
                 <div class="container row">
-                <div class="col-12 d-none d-md-block col-md-6 pb-1">
+                    <div class="col-12 d-none d-md-block col-md-6 pb-1">
                         <i class="fas fa-shopping-cart"></i> &nbsp; Order Summary
-                </div>
-                <div class="col-12 col-md-4 offset-md-2 text-right">
+                    </div>
+                    <div class="col-12 col-md-4 offset-md-2 text-right">
 
                         <a asp-action="Index" class="btn btn-outline-info form-control btn-sm">Back to Orders</a>
-                </div>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
@@ -239,6 +239,12 @@
                                     </div>
                                 </li>
                             </ul>
+                            @if (Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPaymenet &&
+                            Model.OrderHeader.OrderStatus == SD.StatusDelivered)
+                            {
+                                <input type="submit" class="btn btn-success form-control my-1" value="Pay Now" />
+
+                            }
                             @if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
                             {
                                 if (Model.OrderHeader.OrderStatus == SD.StatusAccepted)
@@ -249,12 +255,7 @@
                                 {
                                     <input type="submit" onclick="return validateInput()" asp-action="DeliverOrder" class="btn btn-primary form-control my-1" value="Ship Order" />
                                 }
-                                @if (Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPaymenet &&
-                               Model.OrderHeader.OrderStatus == SD.StatusDelivered)
-                                {
-                                    <input type="submit" class="btn btn-success form-control my-1" value="Pay Now" />
 
-                                }
                                 @if (Model.OrderHeader.OrderStatus != SD.StatusReturned && Model.OrderHeader.OrderStatus
                                != SD.StatusCancelled &&
                                Model.OrderHeader.OrderStatus != SD.StatusDelivered)
