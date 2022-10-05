@@ -26,6 +26,8 @@ namespace EcommerceBookApp.Utility
         public const string PaymentStatusDelayedPaymenet = "ApprovedForDelayedPayment"; //30 days to make a payment after order is shipped
         public const string PaymentStatusRejected = "Rejected";
 
+        public const string SessionCart = "SessionShopCart";
+
         
         
     }

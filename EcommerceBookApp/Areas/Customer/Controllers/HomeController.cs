@@ -1,6 +1,7 @@
 ﻿using EcommerceBookApp.DataAccess.Repository.IRepository;
 using EcommerceBookApp.Models;
 using EcommerceBookApp.Models.ViewModels;
+using EcommerceBookApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -55,17 +56,22 @@ public class HomeController : Controller
         if (cartFromDatabase == null)
         {
             _unitOW.ShopCart.Add(shopCart);
+            _unitOW.Save();
+            //we now setting our session
+            HttpContext.Session.SetInt32(SD.SessionCart, 
+                _unitOW.ShopCart.GetAll(u => u.AppUserId == claim.Value).ToList().Count); // value is equal to number of items shop card after we added a new entity
         }
         else
         {
             _unitOW.ShopCart.IncrCounter(cartFromDatabase, shopCart.Count);
+            _unitOW.Save();
         }
         
 
         
         //that we extract user id from claims identity
         //here we can add this to database
-        _unitOW.Save();
+        
         return RedirectToAction(nameof(Index));
     }
     
