@@ -201,6 +201,7 @@ namespace EcommerceBookAppWeb.Areas.Customer.Controllers
 
             List<ShopCart> shopCarts = _unitOW.ShopCart.GetAll(u => u.AppUserId ==
             orderHeader.AppUserId).ToList();
+            HttpContext.Session.Clear();
             _unitOW.ShopCart.RemoveRange(shopCarts);
             _unitOW.Save();
             return View(id);
