@@ -8,4 +8,4 @@
 -Order Creation (Order Confirmation, Payments)
 -Order Management (Displayed Order Details, Cancelling Order etc)
 -Authorization
--Session in Action
+-Session in Action.
